@@ -1,0 +1,19 @@
+[Unit]
+Description=Circonus C3 Data Exporter
+Documentation=https://github.com/circonus/c3-exporter
+After=network.target
+
+[Service]
+EnvironmentFile=-/opt/circonus/c3/etc/c3-exporter.env
+User=c3exporter
+ExecStart=/opt/circonus/c3/sbin/c3-exporterd --config=/opt/circonus/c3/etc/c3-exporter.yaml $C3E_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartForceExitStatus=SIGPIPE
+KillMode=control-group
+
+## if seeing 'too many open files' issues, adjust the following setting accordingly
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
