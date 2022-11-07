@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -18,15 +19,15 @@ import (
 type Config struct {
 	Server      Server      `yaml:"server"`
 	Destination Destination `yaml:"destination"`
+	Circonus    Circonus    `yaml:"circonus"`
 	Debug       bool
 }
 
 type Destination struct {
+	TLSConfig  *tls.Config
 	Host       string `yaml:"host"`
 	Port       string `yaml:"port"`
 	CAFile     string `yaml:"ca_file"`
-	TLSConfig  *tls.Config
-	DataToken  string `yaml:"data_token"`
 	SkipVerify bool   `yaml:"skip_verify"`
 	EnableTLS  bool   `yaml:"enable_tls"`
 }
@@ -40,6 +41,13 @@ type Server struct {
 	IdleTimeout       string `yaml:"idle_timeout"`        // 30 seconds
 	ReadHeaderTimeout string `yaml:"read_header_timeout"` // 5 seconds
 	HandlerTimeout    string `yaml:"handler_timeout"`     // 30 seconds
+}
+
+type Circonus struct {
+	APIKey        string `yaml:"api_key"`
+	APIURL        string `yaml:"api_url"`
+	FlushDuration string `yaml:"flush_interval"`
+	FlushInterval time.Duration
 }
 
 func Load(file string) (*Config, error) {
@@ -60,14 +68,27 @@ func Load(file string) (*Config, error) {
 	if cfg.Destination.Host == "" {
 		return nil, fmt.Errorf("invalid config, destination host is required")
 	}
-	if cfg.Destination.DataToken == "" {
-		return nil, fmt.Errorf("invalid config, destination data token is required")
+	if cfg.Circonus.APIKey == "" {
+		return nil, fmt.Errorf("invalid config, circonus api key is required")
 	}
 
 	// backfill defaults
 
+	if cfg.Circonus.APIURL == "" {
+		cfg.Circonus.APIURL = "https://api.circonus.com/"
+	}
+
+	if cfg.Circonus.FlushDuration == "" {
+		cfg.Circonus.FlushDuration = "60s"
+	}
+	dur, err := time.ParseDuration(cfg.Circonus.FlushDuration)
+	if err != nil {
+		return nil, err
+	}
+	cfg.Circonus.FlushInterval = dur
+
 	if cfg.Server.Address == "" {
-		cfg.Server.Address = ":19200"
+		cfg.Server.Address = ":9200"
 	}
 
 	if cfg.Server.ReadTimeout == "" {
