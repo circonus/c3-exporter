@@ -1,5 +1,5 @@
 server:
-  listen_address: ":19200"
+  listen_address: ":9200"
   cert_file: ""
   key_file: ""
   read_timeout: "60s"
@@ -8,11 +8,14 @@ server:
   read_header_timeout: "5s"
   handler_timeout: "30s"
 
-
 destination:
   host: ""
   port: ""
   ca_file: ""
-  data_token: ""
   enable_tls: false
   skip_verify: false
+
+circonus:
+  api_key: ""
+  api_url: ""
+  flush_interval: "60s"
