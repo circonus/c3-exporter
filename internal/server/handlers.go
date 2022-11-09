@@ -198,10 +198,10 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		{Category: "units", Value: "bytes"},
 	}
 	_ = h.metrics.CounterIncrementByValue("log_size", tags, uint64(r.ContentLength))
-	_ = h.metrics.HistogramRecordValue("log_size", tags, float64(r.ContentLength))
+	_ = h.metrics.HistogramRecordValue("log_size_h", tags, float64(r.ContentLength))
 	tags = append(tags, trapmetrics.Tag{Category: "ingest_acct", Value: username})
 	_ = h.metrics.CounterIncrementByValue("log_size", tags, uint64(r.ContentLength))
-	_ = h.metrics.HistogramRecordValue("log_size", tags, float64(r.ContentLength))
+	_ = h.metrics.HistogramRecordValue("log_size_h", tags, float64(r.ContentLength))
 
 	w.WriteHeader(resp.StatusCode)
 	responseSize, err := io.Copy(w, resp.Body)
