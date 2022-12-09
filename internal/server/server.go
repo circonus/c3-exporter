@@ -48,39 +48,55 @@ func New(cfg *config.Config) (*Server, error) {
 		return nil, err
 	}
 
+	s := &Server{
+		cfg:             cfg,
+		tls:             cfg.Server.CertFile != "" && cfg.Server.KeyFile != "",
+		idleConnsClosed: make(chan struct{}),
+	}
+
 	// create the check for tracking
 	metrics, err := initMetrics(cfg.Circonus)
 	if err != nil {
 		return nil, err
 	}
 
+	s.metrics = metrics
+
 	mux := http.NewServeMux()
 	mux.Handle("/", genericHandler{})
 	mux.Handle("/_bulk", http.TimeoutHandler(bulkHandler{
 		dest: cfg.Destination,
 		log: logger.LogWrapper{
-			Log:   log.With().Str("component", "retryablehttp").Logger(),
+			Log:   log.With().Str("handler", "/_bulk").Logger(),
+			Debug: cfg.Debug,
+		},
+		dataToken: cfg.Circonus.APIKey,
+		metrics:   metrics,
+	}, handlerTimeout, "Handler timeout"))
+	mux.Handle("/_cluster/settings", clusterSettingsHandler{s: s})
+	mux.Handle("/otel-v1-apm-service-map", otelv1apmservicemapHandler{s: s})
+	mux.Handle("/_template/", templateHandler{s: s})
+	mux.Handle("/_opendistro/_ism/policies/raw-span-policy", ismPolicyHandler{s: s})
+	mux.Handle("/otel-v1-apm-span-000001", otelSpanHandler{s: s})
+	mux.Handle("/otel-v1-apm-span/_search", otelSpanSearchHandler{s: s})
+	mux.Handle("/otel-v1-apm-span/_bulk", http.TimeoutHandler(bulkHandler{
+		dest: cfg.Destination,
+		log: logger.LogWrapper{
+			Log:   log.With().Str("handler", "/_bulk").Logger(),
 			Debug: cfg.Debug,
 		},
 		dataToken: cfg.Circonus.APIKey,
 		metrics:   metrics,
 	}, handlerTimeout, "Handler timeout"))
 
-	s := &Server{
-		cfg: cfg,
-		tls: cfg.Server.CertFile != "" && cfg.Server.KeyFile != "",
-		srv: &http.Server{
-			Addr:              cfg.Server.Address,
-			ReadTimeout:       readTimeout,
-			WriteTimeout:      writeTimeout,
-			IdleTimeout:       idleTimeout,
-			ReadHeaderTimeout: readHeaderTimeout,
-			Handler:           mux,
-		},
-		idleConnsClosed: make(chan struct{}),
+	s.srv = &http.Server{
+		Addr:              cfg.Server.Address,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
+		ReadHeaderTimeout: readHeaderTimeout,
+		Handler:           s.verifyBasicAuth(mux),
 	}
-
-	s.metrics = metrics
 
 	return s, nil
 }
@@ -98,10 +114,22 @@ func (s *Server) Start(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				_, err := s.metrics.Flush(ctx)
+				r, err := s.metrics.Flush(ctx)
 				if err != nil {
 					log.Warn().Err(err).Msg("flushing circonus metrics")
 				}
+				log.Debug().
+					Str("check_uuid", r.CheckUUID).
+					Str("submit_uuid", r.SubmitUUID).
+					Str("error", r.Error).
+					Uint64("filtered", r.Filtered).
+					Uint64("stats", r.Stats).
+					Int("bytes", r.BytesSent).
+					Str("encode_dur", r.EncodeDuration.String()).
+					Str("submit_dur", r.SubmitDuration.String()).
+					Str("last_req_dur", r.LastReqDuration.String()).
+					Str("flush_dur", r.FlushDuration.String()).
+					Msg("flushed metrics")
 			}
 		}
 	}(ctx)

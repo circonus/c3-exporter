@@ -42,3 +42,4 @@ console.log
 
 # test config
 c3-exporter.yaml
+build_run.sh
