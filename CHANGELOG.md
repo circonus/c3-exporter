@@ -1,5 +1,11 @@
 **unreleased**
 
+# v0.0.4
+
+* feat: add support for data-prepper OTEL config [C3-426]
+* build: update go-apiclient v0.7.18 -> v0.7.21
+* build: update go-trapmetrics v0.0.9 -> v0.0.10
+
 # v0.0.3
 
 * feat: add ingestion tracking histograms
