@@ -1,5 +1,11 @@
 **unreleased**
 
+# v0.0.5
+
+* fix: allow TLS12 to be used AWS doesn't support TLS13 for LBs
+* feat: add per-request id
+* feat: update messages to include request_id
+
 # v0.0.4
 
 * feat: add support for data-prepper OTEL config [C3-426]
