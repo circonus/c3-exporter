@@ -21,6 +21,7 @@ import (
 	"github.com/circonus/c3-exporter/internal/config"
 	"github.com/circonus/c3-exporter/internal/logger"
 	"github.com/circonus/c3-exporter/internal/release"
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/rs/zerolog/log"
 )
@@ -51,6 +52,8 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	reqID := uuid.New()
+
 	handleStart := time.Now()
 
 	// extract basic auth credentials
@@ -74,12 +77,12 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	contentSize, err := io.Copy(gz, r.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("compressing body")
+		log.Error().Err(err).Str("req_id", reqID.String()).Msg("compressing body")
 		http.Error(w, "compressing body", http.StatusInternalServerError)
 		return
 	}
 	if err = gz.Close(); err != nil {
-		log.Error().Err(err).Msg("closing compressed buffer")
+		log.Error().Err(err).Str("req_id", reqID.String()).Msg("closing compressed buffer")
 		http.Error(w, "closing compressed buffer", http.StatusInternalServerError)
 		return
 	}
@@ -127,7 +130,7 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	req, err := retryablehttp.NewRequestWithContext(r.Context(), method, destURL.String(), &buf)
 	if err != nil {
-		log.Error().Err(err).Msg("creating destination request")
+		log.Error().Err(err).Str("req_id", reqID.String()).Msg("creating destination request")
 		http.Error(w, "creating destination request", http.StatusInternalServerError)
 		return
 	}
@@ -155,7 +158,8 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	retryClient.RequestLogHook = func(l retryablehttp.Logger, r *http.Request, attempt int) {
 		if attempt > 0 {
 			reqStart = time.Now()
-			l.Printf("retrying... %s %d", r.URL.String(), attempt)
+			log.Info().Str("req_id", reqID.String()).Str("url", r.URL.String()).Int("attempt", attempt).Msg("rettrying")
+			// l.Printf("retrying... %s %d", r.URL.String(), attempt)
 			retries++
 		}
 	}
@@ -163,26 +167,29 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	retryClient.RequestLogHook = func(l retryablehttp.Logger, r *http.Request, attempt int) {
 		if attempt > 0 {
 			reqStart = time.Now()
-			l.Printf("retrying... %s %d", r.URL.String(), attempt)
+			log.Info().Str("req_id", reqID.String()).Str("url", r.URL.String()).Int("attempt", attempt).Msg("rettrying")
+			// l.Printf("retrying... %s %d", r.URL.String(), attempt)
 			retries++
 		}
 	}
 
 	retryClient.ResponseLogHook = func(l retryablehttp.Logger, r *http.Response) {
 		if r.StatusCode != http.StatusOK {
-			l.Printf("non-200 response %s: %s", r.Request.URL.String(), r.Status)
+			log.Warn().Str("req_id", reqID.String()).Str("url", r.Request.URL.String()).Int("status_code", r.StatusCode).Str("status", r.Status).Msg("non-200 response")
+			// l.Printf("%s non-200 response %s: %s", reqID.String(), r.Request.URL.String(), r.Status)
 			if r.StatusCode == http.StatusNotAcceptable {
 				l.Printf("broker couldn't parse payload - try tracing metrics for this specific check")
 			}
 		} else if r.StatusCode == http.StatusOK && retries > 0 {
-			l.Printf("succeeded after %d attempt(s)", retries+1) // add one for first failed attempt
+			log.Info().Str("req_id", reqID.String()).Str("url", r.Request.URL.String()).Int("retries", retries+1).Msg("succeeded")
+			// l.Printf("succeeded after %d attempt(s)", retries+1) // add one for first failed attempt
 		}
 	}
 
 	retryClient.CheckRetry = func(ctx context.Context, resp *http.Response, origErr error) (bool, error) {
 		retry, rhErr := retryablehttp.ErrorPropagatedRetryPolicy(ctx, resp, origErr)
 		if retry && rhErr != nil {
-			log.Warn().Err(rhErr).Err(origErr).Str("req_url", resp.Request.URL.String()).Msg("request error")
+			log.Warn().Err(rhErr).Err(origErr).Str("req_id", reqID.String()).Str("req_url", resp.Request.URL.String()).Msg("request error")
 		}
 
 		return retry, nil
@@ -196,7 +203,7 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		log.Error().Err(err).Str("req", req.URL.String()).Msg("making destination request")
+		log.Error().Err(err).Str("req_id", reqID.String()).Str("req", req.URL.String()).Msg("making destination request")
 		http.Error(w, "making destination request", http.StatusInternalServerError)
 		return
 	}
@@ -215,7 +222,7 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(resp.StatusCode)
 	responseSize, err := io.Copy(w, resp.Body)
 	if err != nil {
-		log.Error().Err(err).Msg("reading/writing response body")
+		log.Error().Err(err).Str("req_id", reqID.String()).Msg("reading/writing response body")
 		http.Error(w, "reading/writing response", http.StatusInternalServerError)
 		return
 	}
@@ -226,11 +233,12 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info().
+		Str("req_id", reqID.String()).
 		Str("remote", remote).
 		Str("proto", r.Proto).
 		Str("method", r.Method).
 		Str("URI", r.URL.RequestURI()).
-		Int("resp_code", resp.StatusCode).
+		Int("upstream_resp_code", resp.StatusCode).
 		Str("handle_dur", time.Since(handleStart).String()).
 		Str("upstream_req_dur", time.Since(reqStart).String()).
 		Int64("orig_size", contentSize).
