@@ -114,7 +114,9 @@ func Load(file string) (*Config, error) {
 	// create destination TLS Config
 	if cfg.Destination.EnableTLS {
 		var err error
-		tc := &tls.Config{MinVersion: tls.VersionTLS13}
+		tc := &tls.Config{
+			MinVersion: tls.VersionTLS12, //nolint:gosec // G402 -- AWS doesn't support TLS13
+		}
 		if cfg.Destination.CAFile != "" {
 			tc, err = loadCAFile(cfg.Destination.CAFile)
 			if err != nil {
