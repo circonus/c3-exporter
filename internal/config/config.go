@@ -8,8 +8,10 @@ package config
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -46,8 +48,73 @@ type Server struct {
 type Circonus struct {
 	APIKey        string `yaml:"api_key"`
 	APIURL        string `yaml:"api_url"`
+	CheckTarget   string `yaml:"check_target"`
 	FlushDuration string `yaml:"flush_interval"`
 	FlushInterval time.Duration
+}
+
+func cfgFromEnv() Config {
+	envPrefix := "C3E_"
+
+	cfg := Config{
+		Server: Server{
+			Address:           os.Getenv(envPrefix + "SVR_ADDRESS"),
+			CertFile:          os.Getenv(envPrefix + "SVR_CERT_FILE"),
+			KeyFile:           os.Getenv(envPrefix + "SVR_KEY_FILE"),
+			ReadTimeout:       os.Getenv(envPrefix + "SVR_READ_TIMEOUT"),
+			WriteTimeout:      os.Getenv(envPrefix + "SVR_WRITE_TIMEOUT"),
+			IdleTimeout:       os.Getenv(envPrefix + "SVR_IDLE_TIMEOUT"),
+			ReadHeaderTimeout: os.Getenv(envPrefix + "SVR_READ_HEADER_TIMEOUT"),
+			HandlerTimeout:    os.Getenv(envPrefix + "SVR_HANDLER_TIMEOUT"),
+		},
+		Destination: Destination{
+			Host:   os.Getenv(envPrefix + "DEST_HOST"),
+			Port:   os.Getenv(envPrefix + "DEST_PORT"),
+			CAFile: os.Getenv(envPrefix + "DEST_CA_FILE"),
+		},
+		Circonus: Circonus{
+			CheckTarget:   os.Getenv(envPrefix + "CIRC_CHECK_TARGET"),
+			APIKey:        os.Getenv(envPrefix + "CIRC_API_KEY"),
+			APIURL:        os.Getenv(envPrefix + "CIRC_API_URL"),
+			FlushDuration: os.Getenv(envPrefix + "CIRC_FLUSH_INTERVAL"),
+		},
+	}
+
+	if val, ok := os.LookupEnv(envPrefix + "DEST_ENABLE_TLS"); ok {
+		if val != "" {
+			setting, err := strconv.ParseBool(val)
+			if err != nil {
+				log.Warn().Err(err).Str("value", val).Msgf("parsing %sENABLE_TLS", envPrefix)
+			} else {
+				cfg.Destination.EnableTLS = setting
+			}
+
+		}
+	}
+
+	if val, ok := os.LookupEnv(envPrefix + "DEST_TLS_SKIP_VERIFY"); ok {
+		if val != "" {
+			setting, err := strconv.ParseBool(val)
+			if err != nil {
+				log.Warn().Err(err).Str("value", val).Msgf("parsing %sTLS_SKIP_VERIFY", envPrefix)
+			} else {
+				cfg.Destination.SkipVerify = setting
+			}
+		}
+	}
+
+	if val, ok := os.LookupEnv(envPrefix + "DEBUG"); ok {
+		if val != "" {
+			setting, err := strconv.ParseBool(val)
+			if err != nil {
+				log.Warn().Err(err).Str("value", val).Msgf("parsing %sDEBUG", envPrefix)
+			} else {
+				cfg.Debug = setting
+			}
+		}
+	}
+
+	return cfg
 }
 
 func Load(file string) (*Config, error) {
@@ -55,14 +122,19 @@ func Load(file string) (*Config, error) {
 		return nil, fmt.Errorf("invalid config file path (empty)")
 	}
 
+	var cfg Config
 	data, err := os.ReadFile(file)
 	if err != nil {
-		return nil, err
-	}
-
-	var cfg Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, err
+		if errors.Is(err, os.ErrNotExist) {
+			log.Warn().Err(err).Msg("config not found, trying environment")
+			cfg = cfgFromEnv()
+		} else {
+			return nil, err
+		}
+	} else {
+		if err := yaml.Unmarshal(data, &cfg); err != nil {
+			return nil, err
+		}
 	}
 
 	if cfg.Destination.Host == "" {
