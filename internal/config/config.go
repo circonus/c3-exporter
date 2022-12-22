@@ -30,7 +30,7 @@ type Destination struct {
 	Host       string `yaml:"host"`
 	Port       string `yaml:"port"`
 	CAFile     string `yaml:"ca_file"`
-	SkipVerify bool   `yaml:"skip_verify"`
+	SkipVerify bool   `yaml:"tls_skip_verify"`
 	EnableTLS  bool   `yaml:"enable_tls"`
 }
 
