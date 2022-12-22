@@ -2,10 +2,11 @@
 
 # v0.0.6
 
-* fix: skip_verify -> tls_skip_verify -- clarify option name
+* fix: add `check_target` to example config
+* fix: `skip_verify` -> `tls_skip_verify` -- clarify option name
 * fix: correct build tags
 * feat: add env vars for config when in container
-* feat: provide more information when -version requested e.g. c3-exporter v0.0.6-devel (branch:main commit:5d85d3c build_date:2022-12-22T16:31:33Z build_tag:v0.0.5)
+* feat: provide more information when `-version` requested e.g. `c3-exporter v0.0.6-devel (branch:main commit:5d85d3c build_date:2022-12-22T16:31:33Z build_tag:v0.0.5)`
 * chore: change snapshot name template
 * chore: ensure all defaults reflected in example config
 * doc: add brief install pointers and configuration details
