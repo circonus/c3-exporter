@@ -13,9 +13,9 @@ destination:
   port: ""
   ca_file: ""
   enable_tls: false
-  skip_verify: false
+  tls_skip_verify: false
 
 circonus:
   api_key: ""
-  api_url: ""
+  api_url: "https://api.circonus.com/"
   flush_interval: "60s"
