@@ -11,8 +11,9 @@ const (
 )
 
 var (
-	Version     = "dev"
-	Commit      = "dev"
-	Tag         = "none"
-	ReleaseDate = "undef"
+	Version   = "dev"
+	Commit    = "dev"
+	Branch    = "undef"
+	BuildDate = "undef"
+	BuildTag  = "undef"
 )
