@@ -16,6 +16,7 @@ destination:
   tls_skip_verify: false
 
 circonus:
+  check_target: ""
   api_key: ""
   api_url: "https://api.circonus.com/"
   flush_interval: "60s"
