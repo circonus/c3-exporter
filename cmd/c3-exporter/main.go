@@ -30,10 +30,15 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		log.Info().Str("name", release.NAME).Str("version", release.Version)
+		fmt.Printf("%s v%s (branch:%s commit:%s build_date:%s build_tag:%s)\n",
+			release.NAME, release.Version,
+			release.Branch, release.Commit,
+			release.BuildDate, release.BuildTag,
+		)
 		os.Exit(0)
 	}
 
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 		log.Debug().Msg("debug enabled")
@@ -57,7 +62,14 @@ func main() {
 	defer cancel()
 	go handleSignals(ctx, signalCh, svr)
 
-	log.Info().Str("name", release.NAME).Str("version", release.Version).Msg("starting")
+	log.Info().
+		Str("name", release.NAME).
+		Str("version", release.Version).
+		Str("branch", release.Branch).
+		Str("commit", release.Commit).
+		Str("build_date", release.BuildDate).
+		Str("build_tag", release.BuildTag).
+		Msg("starting")
 	if err := svr.Start(ctx); err != nil {
 		log.Error().Err(err).Msg("starting server")
 	}
