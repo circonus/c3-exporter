@@ -28,11 +28,11 @@ builds:
             - -s
             - -w
             - -extldflags "-static"
-            - -X github.com/circonus/c3-exporter/internal/release.version={{.Version}}
-            - -X github.com/circonus/c3-exporter/internal/release.commit={{.ShortCommit}}
-            - -X github.com/circonus/c3-exporter/internal/release.branch={{.Branch}}
-            - -X github.com/circonus/c3-exporter/internal/release.buildDate={{.Date}}
-            - -X github.com/circonus/c3-exporter/internal/release.buildTag={{.Tag}}
+            - -X github.com/circonus/c3-exporter/internal/release.Version={{.Version}}
+            - -X github.com/circonus/c3-exporter/internal/release.Commit={{.ShortCommit}}
+            - -X github.com/circonus/c3-exporter/internal/release.Branch={{.Branch}}
+            - -X github.com/circonus/c3-exporter/internal/release.BuildDate={{.Date}}
+            - -X github.com/circonus/c3-exporter/internal/release.BuildTag={{.Tag}}
 dockers:
     -
         goos: linux
@@ -181,3 +181,6 @@ changelog:
 
 checksum:
     name_template: "{{.ProjectName}}_checksums.txt"
+
+snapshot:
+  name_template: '{{ incpatch .Version }}-devel'
