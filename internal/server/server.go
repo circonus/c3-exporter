@@ -65,7 +65,7 @@ func New(cfg *config.Config) (*Server, error) {
 	mux := http.NewServeMux()
 	mux.Handle("/", genericHandler{})
 	mux.Handle("/health", healthHandler{})
-	mux.Handle("/_bulk", http.TimeoutHandler(bulkHandler{
+	mux.Handle("/_bulk", s.verifyBasicAuth(http.TimeoutHandler(bulkHandler{
 		dest: cfg.Destination,
 		log: logger.LogWrapper{
 			Log:   log.With().Str("handler", "/_bulk").Logger(),
@@ -73,14 +73,14 @@ func New(cfg *config.Config) (*Server, error) {
 		},
 		dataToken: cfg.Circonus.APIKey,
 		metrics:   metrics,
-	}, handlerTimeout, "Handler timeout"))
-	mux.Handle("/_cluster/settings", clusterSettingsHandler{s: s})
-	mux.Handle("/otel-v1-apm-service-map", otelv1apmservicemapHandler{s: s})
-	mux.Handle("/_template/", templateHandler{s: s})
-	mux.Handle("/_opendistro/_ism/policies/raw-span-policy", ismPolicyHandler{s: s})
-	mux.Handle("/otel-v1-apm-span-000001", otelSpanHandler{s: s})
-	mux.Handle("/otel-v1-apm-span/_search", otelSpanSearchHandler{s: s})
-	mux.Handle("/otel-v1-apm-span/_bulk", http.TimeoutHandler(bulkHandler{
+	}, handlerTimeout, "Handler timeout")))
+	mux.Handle("/_cluster/settings", s.verifyBasicAuth(clusterSettingsHandler{s: s}))
+	mux.Handle("/otel-v1-apm-service-map", s.verifyBasicAuth(otelv1apmservicemapHandler{s: s}))
+	mux.Handle("/_template/", s.verifyBasicAuth(templateHandler{s: s}))
+	mux.Handle("/_opendistro/_ism/policies/raw-span-policy", s.verifyBasicAuth(ismPolicyHandler{s: s}))
+	mux.Handle("/otel-v1-apm-span-000001", s.verifyBasicAuth(otelSpanHandler{s: s}))
+	mux.Handle("/otel-v1-apm-span/_search", s.verifyBasicAuth(otelSpanSearchHandler{s: s}))
+	mux.Handle("/otel-v1-apm-span/_bulk", s.verifyBasicAuth(http.TimeoutHandler(bulkHandler{
 		dest: cfg.Destination,
 		log: logger.LogWrapper{
 			Log:   log.With().Str("handler", "/_bulk").Logger(),
@@ -88,7 +88,7 @@ func New(cfg *config.Config) (*Server, error) {
 		},
 		dataToken: cfg.Circonus.APIKey,
 		metrics:   metrics,
-	}, handlerTimeout, "Handler timeout"))
+	}, handlerTimeout, "Handler timeout")))
 
 	s.srv = &http.Server{
 		Addr:              cfg.Server.Address,
@@ -96,7 +96,7 @@ func New(cfg *config.Config) (*Server, error) {
 		WriteTimeout:      writeTimeout,
 		IdleTimeout:       idleTimeout,
 		ReadHeaderTimeout: readHeaderTimeout,
-		Handler:           s.verifyBasicAuth(mux),
+		Handler:           mux,
 	}
 
 	return s, nil
