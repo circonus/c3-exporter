@@ -23,7 +23,7 @@ Environment variables:
 |`C3E_SVR_READ_HEADER_TIMEOUT`|`server.read_header_timeout`|"5s"|no|
 |`C3E_SVR_HANDLER_TIMEOUT`|`server.handler_timeout`|"30s"|no|
 |`C3E_DEST_HOST`|`destination.host`|""|YES|
-|`C3E_DEST_PORT`|`destination.port`|""|no|
+|`C3E_DEST_PORT`|`destination.port`|""|YES|
 |`C3E_DEST_CA_FILE`|`destination.ca_file`|""|no|
 |`C3E_DEST_ENABLE_TLS`|`destination.enable_tls`|"false"|no|
 |`C3E_DEST_TLS_SKIP_VERIFY`|`destination.tls_skip_verify`|"false"|no|
