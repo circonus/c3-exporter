@@ -1,5 +1,9 @@
 **unreleased**
 
+# v0.0.8
+
+* fix: remove default configs from docker images so env vars will be used
+
 # v0.0.7
 
 * feat: add `/health` end point
