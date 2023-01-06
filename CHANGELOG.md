@@ -1,5 +1,9 @@
 **unreleased**
 
+# v0.0.9
+
+* fix: do not auth / and /health
+
 # v0.0.8
 
 * fix: remove default configs from docker images so env vars will be used
