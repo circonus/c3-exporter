@@ -1,5 +1,9 @@
 **unreleased**
 
+# v0.0.7
+
+* feat: add `/health` end point
+
 # v0.0.6
 
 * fix: add `check_target` to example config
