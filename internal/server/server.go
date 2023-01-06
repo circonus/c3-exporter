@@ -64,6 +64,7 @@ func New(cfg *config.Config) (*Server, error) {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", genericHandler{})
+	mux.Handle("/health", healthHandler{})
 	mux.Handle("/_bulk", http.TimeoutHandler(bulkHandler{
 		dest: cfg.Destination,
 		log: logger.LogWrapper{

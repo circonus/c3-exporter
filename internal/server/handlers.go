@@ -39,6 +39,12 @@ func (genericHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "not found", http.StatusNotFound)
 }
 
+type healthHandler struct{}
+
+func (healthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	_, _ = w.Write([]byte("OK"))
+}
+
 type bulkHandler struct {
 	log       logger.Logger
 	metrics   *trapmetrics.TrapMetrics
