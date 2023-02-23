@@ -32,11 +32,18 @@ func (s *Server) serverError(w http.ResponseWriter, err error) {
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-type genericHandler struct{}
+type genericHandler struct {
+	s *Server
+}
 
-func (genericHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Warn().Str("method", r.Method).Str("uri", r.RequestURI).Msg("request received")
-	http.Error(w, "not found", http.StatusNotFound)
+func (h genericHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodHead, http.MethodGet:
+		h.s.genericRequest(w, r)
+	default:
+		log.Warn().Str("method", r.Method).Str("uri", r.RequestURI).Msg("request received")
+		http.Error(w, "not found", http.StatusNotFound)
+	}
 }
 
 type healthHandler struct{}

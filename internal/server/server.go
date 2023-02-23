@@ -63,7 +63,7 @@ func New(cfg *config.Config) (*Server, error) {
 	s.metrics = metrics
 
 	mux := http.NewServeMux()
-	mux.Handle("/", genericHandler{})
+	mux.Handle("/", s.verifyBasicAuth(genericHandler{s: s}))
 	mux.Handle("/health", healthHandler{})
 	mux.Handle("/_bulk", s.verifyBasicAuth(http.TimeoutHandler(bulkHandler{
 		dest: cfg.Destination,
