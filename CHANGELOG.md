@@ -1,5 +1,9 @@
 **unreleased**
 
+# v0.0.10
+
+* feat: expand handling of / to support cua elastic search plugin
+
 # v0.0.9
 
 * fix: do not auth / and /health
