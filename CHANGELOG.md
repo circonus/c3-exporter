@@ -1,5 +1,9 @@
 **unreleased**
 
+# v0.0.11
+
+* feat: add `/_component_template/` for elastiflow
+
 # v0.0.10
 
 * feat: expand handling of / to support cua elastic search plugin
