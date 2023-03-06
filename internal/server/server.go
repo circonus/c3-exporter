@@ -77,6 +77,7 @@ func New(cfg *config.Config) (*Server, error) {
 	mux.Handle("/_cluster/settings", s.verifyBasicAuth(clusterSettingsHandler{s: s}))
 	mux.Handle("/otel-v1-apm-service-map", s.verifyBasicAuth(otelv1apmservicemapHandler{s: s}))
 	mux.Handle("/_template/", s.verifyBasicAuth(templateHandler{s: s}))
+	mux.Handle("/_component_template/", s.verifyBasicAuth(templateHandler{s: s}))
 	mux.Handle("/_opendistro/_ism/policies/raw-span-policy", s.verifyBasicAuth(ismPolicyHandler{s: s}))
 	mux.Handle("/otel-v1-apm-span-000001", s.verifyBasicAuth(otelSpanHandler{s: s}))
 	mux.Handle("/otel-v1-apm-span/_search", s.verifyBasicAuth(otelSpanSearchHandler{s: s}))
