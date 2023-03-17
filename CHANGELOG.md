@@ -1,5 +1,12 @@
 **unreleased**
 
+# v0.0.13
+
+* feat: increase retry window min:2 max:10
+* fix: clarify error message
+* feat: update logging messages add req_id
+* fix(goreleaser): deprecated syntax
+
 # v0.0.12
 
 * feat: add `/_index_template/` for elastiflow
