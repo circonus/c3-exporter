@@ -13,7 +13,6 @@ import (
 
 	"github.com/circonus-labs/go-trapmetrics"
 	"github.com/circonus/c3-exporter/internal/config"
-	"github.com/circonus/c3-exporter/internal/logger"
 	"github.com/rs/zerolog/log"
 )
 
@@ -66,13 +65,16 @@ func New(cfg *config.Config) (*Server, error) {
 	mux.Handle("/", s.verifyBasicAuth(genericHandler{s: s}))
 	mux.Handle("/health", healthHandler{})
 	mux.Handle("/_bulk", s.verifyBasicAuth(http.TimeoutHandler(bulkHandler{
-		dest: cfg.Destination,
-		log: logger.LogWrapper{
-			Log:   log.With().Str("handler", "/_bulk").Logger(),
-			Debug: cfg.Debug,
-		},
+		dest:      cfg.Destination,
 		dataToken: cfg.Circonus.APIKey,
 		metrics:   metrics,
+		debug:     cfg.Debug,
+	}, handlerTimeout, "Handler timeout")))
+	mux.Handle("/otel-v1-apm-span/_bulk", s.verifyBasicAuth(http.TimeoutHandler(bulkHandler{
+		dest:      cfg.Destination,
+		dataToken: cfg.Circonus.APIKey,
+		metrics:   metrics,
+		debug:     cfg.Debug,
 	}, handlerTimeout, "Handler timeout")))
 	mux.Handle("/_cluster/settings", s.verifyBasicAuth(clusterSettingsHandler{s: s}))
 	mux.Handle("/otel-v1-apm-service-map", s.verifyBasicAuth(otelv1apmservicemapHandler{s: s}))
@@ -82,15 +84,6 @@ func New(cfg *config.Config) (*Server, error) {
 	mux.Handle("/_opendistro/_ism/policies/raw-span-policy", s.verifyBasicAuth(ismPolicyHandler{s: s}))
 	mux.Handle("/otel-v1-apm-span-000001", s.verifyBasicAuth(otelSpanHandler{s: s}))
 	mux.Handle("/otel-v1-apm-span/_search", s.verifyBasicAuth(otelSpanSearchHandler{s: s}))
-	mux.Handle("/otel-v1-apm-span/_bulk", s.verifyBasicAuth(http.TimeoutHandler(bulkHandler{
-		dest: cfg.Destination,
-		log: logger.LogWrapper{
-			Log:   log.With().Str("handler", "/_bulk").Logger(),
-			Debug: cfg.Debug,
-		},
-		dataToken: cfg.Circonus.APIKey,
-		metrics:   metrics,
-	}, handlerTimeout, "Handler timeout")))
 
 	s.srv = &http.Server{
 		Addr:              cfg.Server.Address,
