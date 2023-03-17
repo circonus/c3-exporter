@@ -176,8 +176,8 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Log:   reqLogger.With().Str("handler", "/_bulk").Str("component", "retryablehttp").Logger(),
 		Debug: h.debug,
 	}
-	retryClient.RetryWaitMin = 50 * time.Millisecond
-	retryClient.RetryWaitMax = 2 * time.Second
+	retryClient.RetryWaitMin = 2 * time.Second
+	retryClient.RetryWaitMax = 10 * time.Second
 	retryClient.RetryMax = 7
 	retryClient.RequestLogHook = func(l retryablehttp.Logger, r *http.Request, attempt int) {
 		if attempt > 0 {
@@ -465,8 +465,8 @@ func (s *Server) genericRequest(w http.ResponseWriter, r *http.Request) {
 		Log:   reqLogger.With().Str("handler", "/_bulk").Str("component", "retryablehttp").Logger(),
 		Debug: s.cfg.Debug,
 	}
-	retryClient.RetryWaitMin = 50 * time.Millisecond
-	retryClient.RetryWaitMax = 2 * time.Second
+	retryClient.RetryWaitMin = 2 * time.Second
+	retryClient.RetryWaitMax = 10 * time.Second
 	retryClient.RetryMax = 7
 	retryClient.RequestLogHook = func(l retryablehttp.Logger, r *http.Request, attempt int) {
 		if attempt > 0 {
