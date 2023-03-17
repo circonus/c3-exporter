@@ -213,8 +213,8 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		reqLogger.Error().Err(err).Msg("making destination request")
-		// http.Error(w, "making destination request", http.StatusInternalServerError)
-		// return
+		http.Error(w, "making destination request", http.StatusInternalServerError)
+		return
 	}
 
 	tags := trapmetrics.Tags{
@@ -502,8 +502,8 @@ func (s *Server) genericRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		reqLogger.Error().Err(err).Msg("making destination request")
-		// s.serverError(w, fmt.Errorf("making destination request (%s): %w", req.URL.String(), err))
-		// return
+		http.Error(w, "making destination request", http.StatusInternalServerError)
+		return
 	}
 
 	tags := trapmetrics.Tags{
