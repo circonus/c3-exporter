@@ -100,8 +100,6 @@ nfpms:
       description: Circonus C3 Data Exporter
       license: MIT
       file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
-      replacements:
-        darwin: macOS
       formats:
         - deb
         - rpm
@@ -138,8 +136,6 @@ archives:
         id: default
         name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}_{{.Arch}}"
         format: tar.gz
-        replacements:
-          amd64: x86_64
         format_overrides:
           -
             goos: windows
