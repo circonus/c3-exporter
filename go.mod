@@ -6,7 +6,7 @@ require (
 	github.com/circonus-labs/go-apiclient v0.7.21
 	github.com/circonus-labs/go-trapcheck v0.0.9
 	github.com/circonus-labs/go-trapmetrics v0.0.10
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.4.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/rs/zerolog v1.28.0
 	golang.org/x/sys v0.1.0
