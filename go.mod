@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/rs/zerolog v1.28.0
-	golang.org/x/sys v0.1.0
+	golang.org/x/sys v0.14.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
