@@ -67,7 +67,7 @@ func (h bulkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// extract basic auth credentials
 	// we're not going to verify them, but they must be present so they can be
-	// passed upstream and ultimately to opensearch.
+	// passed upstream and ultimately to OpenSearch.
 	username, password, ok := r.BasicAuth()
 	if !ok {
 		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
@@ -365,12 +365,18 @@ func (s *Server) genericRequest(w http.ResponseWriter, r *http.Request) {
 		remote = r.RemoteAddr
 	}
 
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal().Err(err).Msg("reading request body")
+	}
+	log.Debug().Str("data", string(data)).Msg("request body")
+
 	var contentSize int64
 	var buf bytes.Buffer
 	if r.Method == http.MethodPut || r.Method == http.MethodPost {
 		gz := gzip.NewWriter(&buf)
 		defer r.Body.Close()
-		sz, err := io.Copy(gz, r.Body)
+		sz, err := io.Copy(gz, bytes.NewBuffer(data))
 		if err != nil {
 			s.serverError(w, fmt.Errorf("compressing body: %w", err))
 			return
@@ -426,15 +432,17 @@ func (s *Server) genericRequest(w http.ResponseWriter, r *http.Request) {
 	newURL += r.URL.String()
 
 	var req *retryablehttp.Request
-	var err error
-	if r.Method == http.MethodPut || r.Method == http.MethodPost {
-		req, err = retryablehttp.NewRequestWithContext(r.Context(), r.Method, newURL, &buf)
-	} else {
-		req, err = retryablehttp.NewRequestWithContext(r.Context(), r.Method, newURL, nil)
-	}
-	if err != nil {
-		s.serverError(w, fmt.Errorf("creating destination request: %w", err))
-		return
+	{
+		var err error
+		if r.Method == http.MethodPut || r.Method == http.MethodPost {
+			req, err = retryablehttp.NewRequestWithContext(r.Context(), r.Method, newURL, &buf)
+		} else {
+			req, err = retryablehttp.NewRequestWithContext(r.Context(), r.Method, newURL, nil)
+		}
+		if err != nil {
+			s.serverError(w, fmt.Errorf("creating destination request: %w", err))
+			return
+		}
 	}
 
 	reqLogger = log.With().
@@ -462,7 +470,7 @@ func (s *Server) genericRequest(w http.ResponseWriter, r *http.Request) {
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient = client
 	retryClient.Logger = logger.LogWrapper{
-		Log:   reqLogger.With().Str("handler", "/_bulk").Str("component", "retryablehttp").Logger(),
+		Log:   reqLogger.With().Str("handler", "genericRequest").Str("component", "retryablehttp").Logger(),
 		Debug: s.cfg.Debug,
 	}
 	retryClient.RetryWaitMin = 2 * time.Second
