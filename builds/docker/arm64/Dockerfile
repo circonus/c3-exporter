@@ -3,7 +3,7 @@ RUN echo 'hosts: files dns' >> /etc/nsswitch.conf
 RUN apk add --no-cache ca-certificates && \
     update-ca-certificates
 
-COPY c3-exporterd /
+COPY sbin/c3-exporterd /
 
 # NOTE: mount custom config as /c3-exporter.yaml
 # COPY etc/example-c3-exporter.yaml /c3-exporter.yaml
