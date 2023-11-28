@@ -1,5 +1,12 @@
 # **unreleased**
 
+## v0.0.15
+
+* build: add after hook for `grype` on generated sboms
+* build: add .sbom for archive artifacts
+* build: update before hooks for `go mod tidy`, `govulncheck` and `golangci-lint`
+* build(deps): bump golang.org/x/sys from 0.14.0 to 0.15.0
+
 ## v0.0.14
 
 * build(deps): bump github.com/rs/zerolog from 1.28.0 to 1.31.0
