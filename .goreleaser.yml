@@ -1,38 +1,43 @@
 project_name: c3-exporter
 
 before:
-    hooks:
-        - go mod tidy
-        - ./build_lint.sh
+  hooks:
+    - go mod tidy
+    - cmd: golangci-lint run
+      env:
+        - GOOS=linux
+    - govulncheck ./...
         
 builds:
-    -
-        id: c3e
-        main: ./cmd/c3-exporter
-        binary: sbin/c3-exporterd
-        env:
-            - CGO_ENABLED=0
-        goos:
-            - linux
-            - darwin
-        goarch:
-            - amd64
-            - arm64
-        ignore:
-            - goarch: 386
-            - goos: openbsd
-              goarch: arm64
-            - goos: windows
-              goarch: arm64
-        ldflags:
-            - -s
-            - -w
-            - -extldflags "-static"
-            - -X github.com/circonus/c3-exporter/internal/release.Version={{.Version}}
-            - -X github.com/circonus/c3-exporter/internal/release.Commit={{.ShortCommit}}
-            - -X github.com/circonus/c3-exporter/internal/release.Branch={{.Branch}}
-            - -X github.com/circonus/c3-exporter/internal/release.BuildDate={{.Date}}
-            - -X github.com/circonus/c3-exporter/internal/release.BuildTag={{.Tag}}
+  - id: c3e
+    main: ./cmd/c3-exporter
+    binary: sbin/c3-exporterd
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goarch: 386
+      - goos: openbsd
+        goarch: arm64
+      - goos: windows
+        goarch: arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+      - -X github.com/circonus/c3-exporter/internal/release.Version={{.Version}}
+      - -X github.com/circonus/c3-exporter/internal/release.Commit={{.ShortCommit}}
+      - -X github.com/circonus/c3-exporter/internal/release.Branch={{.Branch}}
+      - -X github.com/circonus/c3-exporter/internal/release.BuildDate={{.Date}}
+      - -X github.com/circonus/c3-exporter/internal/release.BuildTag={{.Tag}}
+
 dockers:
     -
         goos: linux
