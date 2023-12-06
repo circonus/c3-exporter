@@ -3,7 +3,7 @@ module github.com/circonus/c3-exporter
 go 1.19
 
 require (
-	github.com/circonus-labs/go-apiclient v0.7.23
+	github.com/circonus-labs/go-apiclient v0.7.24
 	github.com/circonus-labs/go-trapcheck v0.0.14
 	github.com/circonus-labs/go-trapmetrics v0.0.13
 	github.com/google/uuid v1.4.0
