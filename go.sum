@@ -2,8 +2,8 @@ github.com/circonus-labs/go-apiclient v0.7.23 h1:Bk+l9qLUHPGYND8z8Zxw3+d913ZIybD
 github.com/circonus-labs/go-apiclient v0.7.23/go.mod h1:arbbVvv/xFMvD1eSJqkS+Je1sN/JCpHtiL2GV6oA1Mg=
 github.com/circonus-labs/go-trapcheck v0.0.14 h1:BKCxVbU+A/uU9t/HmvI0G8U+W83hwOXj3ZC41Z6bdhY=
 github.com/circonus-labs/go-trapcheck v0.0.14/go.mod h1:g/UL8sdpv8Dp4xZ/ObB9kYCqq01JiSZzR4jATl4XMSQ=
-github.com/circonus-labs/go-trapmetrics v0.0.13 h1:efwXOFmppS+lrjCasNf2rsyXl7Z2QbMk33scnMuAv7U=
-github.com/circonus-labs/go-trapmetrics v0.0.13/go.mod h1:2gcmJHJ2efjMEjoMN0fQa48SX375dXuR51PbrUNMVK4=
+github.com/circonus-labs/go-trapmetrics v0.0.14 h1:NYyeCsC+xQmMYPHu67BNcXvM2YV4XlIOt0XmEfwDQCA=
+github.com/circonus-labs/go-trapmetrics v0.0.14/go.mod h1:2gcmJHJ2efjMEjoMN0fQa48SX375dXuR51PbrUNMVK4=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
